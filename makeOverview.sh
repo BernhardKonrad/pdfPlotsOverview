@@ -1,27 +1,51 @@
+function latexHeader()
+{
+echo "\documentclass{article}"
+echo "\usepackage[english]{babel}"
+echo "\usepackage[margin=2cm]{geometry}"
+echo "\usepackage{graphicx}"
+echo "\begin{document}"
+echo "\begin{center}"
+}
+
+function latexIncludeGraphics()
+{
+echo "\includegraphics[height=.45\textheight]{$1}"
+echo " "
+echo "\bigskip"
+echo " "
+}
+
+function latexFooter()
+{
+echo "\end{center}"
+echo "\end{document}"
+}
+
+
 dir=$1
-rm $dir/temp.*
-rm $dir/overview.pdf
-touch $dir/temp.tex
-echo "\documentclass{article}" >> $dir/temp.tex
-echo "\usepackage[english]{babel}" >> $dir/temp.tex
-echo "\usepackage[margin=2cm]{geometry}" >> $dir/temp.tex
-echo "\usepackage{graphicx}" >> $dir/temp.tex
-echo "\begin{document}" >> $dir/temp.tex
-echo "\begin{center}" >> $dir/temp.tex
+
+if [ -z "$2" ]; then
+outputName=overview.pdf
+else
+outputName=$2
+fi
+
+rm temp.*
+rm overview.pdf
+touch temp.tex
+latexHeader >> temp.tex
 for f in $(ls $dir/*.pdf)
 do
-    echo "\includegraphics[height=.45\textheight]{$f}" >> $dir/temp.tex
-    echo " " >> $dir/temp.tex
-    echo "\bigskip" >> $dir/temp.tex
-    echo " " >> $dir/temp.tex
+	echo $f
+	latexIncludeGraphics $f >> temp.tex
 done
-echo "\end{center}" >> $dir/temp.tex
-echo "\end{document}" >> $dir/temp.tex
-pdflatex $dir/temp.tex
-mv temp.pdf overview.pdf
+latexFooter >> temp.tex
+pdflatex temp.tex
+mv temp.pdf $outputName
 rm temp.*
 if [ $(uname -a | grep mac | wc -l) = "1" ]; then
-    open -a Preview $dir/overview.pdf
+    open -a Preview $outputName
 elif [ $(uname -a | grep linux | wc -l) = "1" ]; then
-    acroread $dir/overview.pdf
+    acroread $outputName
 fi
